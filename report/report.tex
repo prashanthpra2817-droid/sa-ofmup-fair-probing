@@ -109,11 +109,11 @@ and the data behind every table.
 
 \subsection{Agents, arms and rewards}
 There are $M$ agents and $A$ arms. Each pair $(j,a)$ has an unknown reward
-distribution $D_{j,a}$ on $[0,1]$ with mean $\mu_{j,a}$. In round $t$ the planner
-(i) selects a \emph{probing set} $S_t\subseteq[A]$ and observes a fresh sample
-$R_{j,a,t}\sim D_{j,a}$ for every agent $j$ and every $a\in S_t$; (ii) chooses an
-assignment policy $\pi_t$; and (iii) each agent $j$ pulls an arm
-$a_{j,t}\sim\pi_t$ and observes its reward.
+distribution $D_{j,a}$ on $[0,1]$ with mean $\mu_{j,a}$. Each round $t$ has three
+steps. First, the planner selects a \emph{probing set} $S_t\subseteq[A]$ and
+observes a fresh sample $R_{j,a,t}\sim D_{j,a}$ for every agent $j$ and every
+$a\in S_t$. Second, it chooses an assignment policy $\pi_t$. Third, each agent
+$j$ pulls an arm $a_{j,t}\sim\pi_t$ and observes its reward.
 
 \subsection{Nash social welfare}
 For an assignment $\pi$, the expected utility of agent $j$ is $u_j=\sum_a
@@ -221,9 +221,9 @@ Equation~\eqref{eq:nsw} treats the probed value $R_{j,a,t}$ as the reward that
 agent $j$ will obtain if assigned to arm $a$ in the same round. In ridesharing
 this is optimistic: the dispatcher checks the demand in a zone, but the driver
 needs time to get there, and some of the observed requests will have been
-served in the meantime. OFMUP therefore (i) trusts a probe that may be out of
-date when assigning, and (ii) pays the probing cost for information that is
-only partly useful.
+served in the meantime. OFMUP therefore has two weaknesses. First, it trusts a
+probe that may be out of date when assigning. Second, it pays the probing cost
+for information that is only partly useful.
 
 \subsection{Staleness model}
 With probability $\rho\in[0,1]$, independently for each arm and round and
@@ -536,11 +536,11 @@ LCB: probes/round & 0.95 & 0.98 & 0.97 & 0.33 & 0.22 & 0.38 \\
 \label{tab:seeds}
 \end{table}
 
-Two properties of the setting bound how large these gains can be. (i) In the
+Two properties of the setting bound how large these gains can be. First, in the
 staleness model a stale probe reverts to the arm's \emph{mean}, so acting on a
 stale value costs little in expectation: trusting $X=1$ still yields
 $(1-\rho)+\rho\mu\ge\mu$. A model in which revealed demand is \emph{depleted}
-by the time the agent arrives would penalise OFMUP considerably more. (ii) A
+by the time the agent arrives would penalise OFMUP considerably more. Second, a
 stale probe is still a valid sample of $D_{j,a}$ and therefore still speeds up
 learning, whereas Xu et al.'s Algorithm~1 values probes only by their immediate
 information. The worst-off agent's average reward (Figure~\ref{fig:stale},
@@ -652,18 +652,19 @@ recommend checking against the full version \citep{xu2025fairarxiv}.
 \end{enumerate}
 
 \section{Limitations and Future Work}
-My horizon and seed count are below those of \citet{xu2026fair}: the sweeps
+This work has four main limitations. First, my horizon and seed count are
+below those of \citet{xu2026fair}: the sweeps
 use $T=\TT$, and all results use three seeds, so the gains at $\rho=0.8$ are
 indications rather than a confirmed effect size; confirming them with more
-seeds is the first item of future work. The code supports the full setting. The
-staleness model is all-or-nothing; a graded model (demand depletion, or, in
+seeds is the first item of future work. The code supports the full setting.
+Second, the staleness model is all-or-nothing; a graded model (demand depletion, or, in
 ridesharing, $\rho$ increasing with the driver's distance,
 $\rho_{j,a}=1-e^{-d_{j,a}/\tau}$, natural for the taxi setting) is a natural
-extension and would likely show larger regret gains. Xu et al.'s Algorithm~1 ignores the
-learning value of probes; adding an exploration bonus to the probe-selection
-score is a promising complement to SA-OFMUP. The regret analysis of SA-OFMUP is
-a proof direction, not a theorem: the estimation error of $\rhat$ and its effect
-on probe selection remain to be bounded. Finally, I did not run the NYC-taxi
+extension and would likely show larger regret gains. Third, Xu et al.'s Algorithm~1 ignores
+the learning value of probes; adding an exploration bonus to the probe-selection
+score is a promising complement to SA-OFMUP. Fourth, the regret analysis of
+SA-OFMUP is a proof direction, not a theorem: the estimation error of $\rhat$ and its effect
+on probe selection remain to be bounded. In addition, I did not run the NYC-taxi
 experiment of \citet{xu2026fair}; the code supports it, but any staleness
 experiment on historical data would be semi-synthetic, since the data cannot
 reveal what a driver would have found after a hypothetical delay.
