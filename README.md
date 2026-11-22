@@ -1,6 +1,6 @@
 # Fair Probing for Multi-Agent Bandits, Made Robust to Stale Probes
 
-**Korra Prashanth Nayak** · CS 620: Incentives in Machine Learning · IIT Gandhinagar
+**Korra Prashanth Nayak** (Roll No. 25210075) · CS 620: Incentives in Machine Learning · IIT Gandhinagar
 
 This repository contains a from-scratch reproduction of **OFMUP** (Online Fair
 Multi-agent UCB with Probing) from *Fair Algorithms with Probing for Multi-Agent
