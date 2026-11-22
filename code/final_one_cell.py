@@ -1,28 +1,15 @@
-# =============================================================================
-#  OFMUP reproduction + SA-OFMUP (staleness-aware probing)  —  FINAL ONE-CELL CODE
-#  Korra Prashanth Nayak · CS 620: Incentives in Machine Learning · IIT Gandhinagar
-#
-#  Paste this whole file into ONE notebook cell (Jupyter, VS Code or Colab) and run.
-#  Needs: Python 3, numpy, matplotlib  (pip install numpy matplotlib)
-#
-#  Every finished run is saved in results/runs/, so if you stop the cell and run
-#  it again, it skips what is already done and continues where it stopped.
-#  Plots appear under the cell and are saved, with CSV tables, in results/.
-# =============================================================================
+QUICK      = True
 
-# ----------------------------- SETTINGS (edit here) --------------------------
-QUICK      = True    # True = fast test (~5 min). False = the report's experiments (hours)
+RUN_REPRO  = True
+RUN_STALE  = True
+RUN_LONG   = True
 
-RUN_REPRO  = True    # Part 1: reproduce the paper's Figure 1 (4 settings, rho = 0)
-RUN_STALE  = True    # Part 2: staleness sweep (setting a, rho = 0 / 0.4 / 0.8)
-RUN_LONG   = True    # Part 3: the paper's horizon T = 3000 (setting a, rho = 0 and 0.8)
+T_MAIN     = 1500
+T_LONG     = 3000
+SEEDS      = 3
+RHOS       = [0.0, 0.4, 0.8]
+ALPHA_P    = 3
 
-T_MAIN     = 1500    # rounds for Parts 1 and 2 (the report uses 1500)
-T_LONG     = 3000    # rounds for Part 3 (the paper's horizon)
-SEEDS      = 3       # random problem instances to average (the report uses 3)
-RHOS       = [0.0, 0.4, 0.8]   # staleness values for Part 2
-ALPHA_P    = 3       # probing cost alpha(k) = (k/4)^ALPHA_P
-# -----------------------------------------------------------------------------
 
 import csv
 import os
@@ -32,15 +19,7 @@ from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
 
-# =============================================================================
-#  PART A — LIBRARY: simulator, NSW solver, Algorithm 1, OFMUP, SA-OFMUP
-#  Switches (all off = the paper's OFMUP):
-#    stale_aware : use (1 - rho) * probe + rho * mean instead of the raw probe value
-#    count_fix   : a pull from a zone probed in the same round is NOT a new sample
-#    learn_rho   : estimate rho online from probe-pull pairs
-#    lcb         : plan with a lower confidence bound on rho (final method)
-# =============================================================================
-# Rewards live on a fixed grid 0, 0.05, ..., 1.0.
+
 GRID = np.round(np.arange(21) * 0.05, 2)
 G = len(GRID)
 
@@ -49,7 +28,6 @@ def to_grid_idx(values):
     return np.clip(np.rint(np.asarray(values, dtype=float) / 0.05).astype(int), 0, G - 1)
 
 
-# Nash social welfare tools
 def gm(util):
     """Geometric-mean NSW over the last axis (agents). Zero if any agent gets 0."""
     with np.errstate(divide="ignore"):
@@ -109,7 +87,6 @@ def make_alpha(I, p=4):
     return lambda k: (k / I) ** p
 
 
-# Environment (simulator)
 class Env:
     """M agents, A arms, true distributions P (M, A, G).
     rho = probability that a probed value is stale when the agent arrives (rho = 0: OFMUP setting)."""
@@ -129,7 +106,7 @@ class Env:
         probability 1 - rho (one staleness event per arm per round);
         otherwise the agent gets a fresh draw."""
         stale = rng.random(self.A) < self.rho
-        Y = sample_grid(self.P[np.arange(self.M), arms], rng)          # fresh draws
+        Y = sample_grid(self.P[np.arange(self.M), arms], rng)
         pos = {a: i for i, a in enumerate(S)}
         for j, a in enumerate(arms):
             if a in pos and not stale[a]:
@@ -153,7 +130,6 @@ def discrete_env(M, A, rng, rho=0.0):
     return Env(P, rho)
 
 
-# Learner statistics (empirical distributions, means, UCBs)
 class Stats:
     def __init__(self, M, A):
         self.counts = np.zeros((M, A, G))
@@ -185,7 +161,6 @@ class Stats:
         return np.where(N > 0, np.minimum(m + w, 1.0), 1.0)
 
 
-# Greedy probing (Xu et al.'s Algorithm 1) with the staleness transform
 def algorithm1(P, m, alpha, I, rho, rng, K=24, iters=50, cap=None):
     """Greedy probe selection.
 
@@ -208,8 +183,8 @@ def algorithm1(P, m, alpha, I, rho, rng, K=24, iters=50, cap=None):
         chain.append(S)
     chain = [s for s in chain if alpha(len(s)) < 1]
 
-    X = sample_grid(P, rng, K)                                   # (K, M, A)
-    Xt = (1 - rho) * X + rho * m[None]                           # staleness transform
+    X = sample_grid(P, rng, K)
+    Xt = (1 - rho) * X + rho * m[None]
     r = np.broadcast_to(m, (len(chain), K, M, A)).copy()
     for i, s in enumerate(chain):
         if s:
@@ -224,7 +199,7 @@ def offline_opt(env, alpha, I, cap=None, K=300, iters=80, seed=12345, chunk=24):
     M, A, mu = env.M, env.A, env.mu
     X = sample_grid(env.P, rng, K)
     Xt = (1 - env.rho) * X + env.rho * mu[None]
-    best = float(best_nsw(mu, iters, cap))                       # no probing
+    best = float(best_nsw(mu, iters, cap))
     for k in range(1, I + 1):
         if alpha(k) >= 1:
             continue
@@ -238,7 +213,6 @@ def offline_opt(env, alpha, I, cap=None, K=300, iters=80, seed=12345, chunk=24):
     return best
 
 
-# Online algorithms: OFMUP (Xu et al.'s Algorithm 2), baselines and SA-OFMUP
 METHODS = {
     "Random P+A":  dict(probe="random", assign="random"),
     "Greedy P+A":  dict(probe="greedy", assign="random"),
@@ -273,7 +247,7 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
     rho_hat = env.rho if (cfg["stale_aware"] and not cfg["learn_rho"]) else 0.0
     num = x_sum = 0.0
     n_pairs = 0
-    sel = np.zeros((M, A))                            # probe-pull pairs per (agent, arm)
+    sel = np.zeros((M, A))
     rho_point = 0.0
     inst = np.zeros(T)
     probes = np.zeros(T)
@@ -281,7 +255,7 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
     point_trace = np.zeros(T)
     earned = np.zeros(M)
 
-    # Warm start: agent j_t tries arm a_t once.
+
     for t in range(M * A):
         j, a = t % M, t // M
         st.add(j, a, env.probe([a], rng)[j, 0])
@@ -327,21 +301,21 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
                     sel[j, a] += 1
                     n_pairs += 1
                 if not cfg["count_fix"]:
-                    st.add(j, a, Y[j])                # OFMUP records the probed draw again
+                    st.add(j, a, Y[j])
             else:
                 st.add(j, a, Y[j])
         if cfg["learn_rho"]:
-            # Ratio estimator; the denominator uses the current means.
+
             den = x_sum - float((sel * st.mu_hat).sum())
             rho_point = float(np.clip(num / den, 0.0, 1.0)) if den >= kappa else 0.0
             if cfg["lcb"]:
-                # Lower confidence bound, so a noisy early estimate cannot stop probing for good.
+
                 rho_hat = (float(np.clip((num - lcb_c * np.sqrt(n_pairs)) / den, 0.0, 1.0))
                            if den >= kappa else 0.0)
             else:
                 rho_hat = rho_point
 
-        # Score the decision with the true mu and rho.
+
         v = mu.copy()
         if S:
             v[:, S] = (1 - env.rho) * X + env.rho * mu[:, S]
@@ -354,9 +328,6 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
                 rho_point=point_trace, worst_avg=float(earned.min() / (T - M * A)), opt=opt)
 
 
-# =============================================================================
-#  PART B — EXPERIMENTS (reproduction, staleness sweep, T = 3000), FIGURES, TABLES
-# =============================================================================
 OUT, RUNS = "results", os.path.join("results", "runs")
 os.makedirs(RUNS, exist_ok=True)
 I_BUDGET = 4
@@ -379,7 +350,7 @@ _opt_cache = {}
 
 
 def make_env(kind, M, A, seed, rho):
-    rng = np.random.default_rng(1000 + seed)          # one problem instance per seed
+    rng = np.random.default_rng(1000 + seed)
     return (bernoulli_env if kind == "bernoulli" else discrete_env)(M, A, rng, rho)
 
 
@@ -416,7 +387,6 @@ def band(ax, R, m):
     ax.fill_between(np.arange(len(mu)), mu - sd, mu + sd, alpha=0.15, color=STYLE[m]["c"])
 
 
-# ---------------------------------------------------------------- Part 1
 def part1_reproduction(T, seeds):
     print(f"\n=== Part 1: reproduction of Figure 1 (rho = 0, T = {T}, {seeds} seeds) ===")
     fig, axes = plt.subplots(1, 4, figsize=(20, 4.2))
@@ -440,7 +410,6 @@ def part1_reproduction(T, seeds):
              ["panel", "env", "M", "A", "method", "final_regret_mean", "final_regret_std"], rows)
 
 
-# ---------------------------------------------------------------- Part 2
 def part2_staleness(T, seeds, rhos):
     print(f"\n=== Part 2: staleness sweep (setting a, rho = {rhos}, T = {T}, {seeds} seeds) ===")
     kind, M, A = SETTINGS["a"]
@@ -463,7 +432,7 @@ def part2_staleness(T, seeds, rhos):
         print(f"{m:30s}" + "".join(f"  {np.mean([x['regret'][-1] for x in res[(m, r)]]):8.1f}" for r in rhos))
 
     fig, ax = plt.subplots(1, 4, figsize=(20, 4.4))
-    for m in [x for x in STALE if x != "OFMUP+fix"]:       # OFMUP+fix is indistinguishable from OFMUP
+    for m in [x for x in STALE if x != "OFMUP+fix"]:
         reg = np.array([[x["regret"][-1] for x in res[(m, r)]] for r in rhos])
         ax[0].errorbar(rhos, reg.mean(1), yerr=reg.std(1), marker="o", capsize=3, label=lab(m), **STYLE[m])
         ax[1].plot(rhos, [np.mean([x["probes"][M * A:].mean() for x in res[(m, r)]]) for r in rhos],
@@ -483,7 +452,6 @@ def part2_staleness(T, seeds, rhos):
     fig.tight_layout(rect=(0, 0.08, 1, 1)); fig.savefig(os.path.join(OUT, "staleness_a.png"), dpi=150); plt.show()
 
 
-# ---------------------------------------------------------------- Part 3
 def part3_long(T, seeds):
     print(f"\n=== Part 3: the paper's horizon (setting a, T = {T}, {seeds} seeds) ===")
     kind, M, A = SETTINGS["a"]
@@ -504,7 +472,7 @@ def part3_long(T, seeds):
         if m == "OFMUP":
             base = R
         elif base is not None:
-            ax[2].plot((base - R).mean(0), label=lab(m), **STYLE[m])    # paired by seed
+            ax[2].plot((base - R).mean(0), label=lab(m), **STYLE[m])
     ax[2].axhline(0, c="tab:red", lw=1)
     titles = [rf"$\rho=0$: reproduction at $T={T}$", rf"$\rho=0.8$: staleness at $T={T}$",
               r"$\rho=0.8$: regret saved relative to OFMUP"]
@@ -517,9 +485,6 @@ def part3_long(T, seeds):
         print(f"  rho={r[0]}  {r[1]:28s} mean regret {r[-1]}")
 
 
-# =============================================================================
-#  RUN
-# =============================================================================
 if QUICK:
     T_MAIN, T_LONG, SEEDS, RHOS = 300, 400, 2, [0.0, 0.8]
 start = time.time()

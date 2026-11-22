@@ -12,7 +12,7 @@ LABEL = {"Non-Probing": "Non-Probing", "OFMUP": "OFMUP", "OFMUP+fix": "OFMUP+fix
          "SA-OFMUP (known rho)": r"SA-OFMUP (known $\rho$)",
          "SA-OFMUP (learned rho)": "SA-OFMUP (point estimate)",
          "SA-OFMUP (learned rho, LCB)": "SA-OFMUP (LCB, final)"}
-# One colour per method in every figure; SA-OFMUP (LCB, final) is black.
+
 STYLE = {"Random P+A": dict(c="tab:blue"), "Non-Probing": dict(c="tab:orange"),
          "Greedy P+A": dict(c="tab:green"), "OFMUP": dict(c="tab:red"),
          "OFMUP+fix": dict(c="tab:red", ls=":"),
@@ -28,7 +28,7 @@ def chunks(rho):
 def staleness_figure():
     fig, ax = plt.subplots(1, 4, figsize=(20, 4.4))
     methods = ["Non-Probing", "OFMUP", "SA-OFMUP (known rho)", "SA-OFMUP (learned rho)",
-               "SA-OFMUP (learned rho, LCB)"]           # OFMUP+fix is indistinguishable from OFMUP
+               "SA-OFMUP (learned rho, LCB)"]
     for m in methods:
         reg = np.array([[c[m + "|regret"][-1] for c in chunks(r)] for r in RHOS])
         prb = [np.mean([c[m + "|probes"][M * A:].mean() for c in chunks(r)]) for r in RHOS]
@@ -69,7 +69,7 @@ def long_figure():
         ax[1].fill_between(np.arange(R.shape[1]), R.mean(0) - R.std(0), R.mean(0) + R.std(0),
                            alpha=0.15, color=STYLE[m]["c"])
         if m != "OFMUP":
-            ax[2].plot((base - R).mean(0), label=LABEL[m], **STYLE[m])     # paired by seed
+            ax[2].plot((base - R).mean(0), label=LABEL[m], **STYLE[m])
     ax[2].axhline(0, c="tab:red", lw=1)
     ax[0].set_title(r"Setting (a), $\rho=0$: reproduction at $T=3000$")
     ax[1].set_title(r"Setting (a), $\rho=0.8$: staleness at $T=3000$")

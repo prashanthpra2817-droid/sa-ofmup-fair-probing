@@ -13,7 +13,7 @@ from itertools import combinations
 
 import numpy as np
 
-# Rewards live on a fixed grid 0, 0.05, ..., 1.0.
+
 GRID = np.round(np.arange(21) * 0.05, 2)
 G = len(GRID)
 
@@ -22,7 +22,6 @@ def to_grid_idx(values):
     return np.clip(np.rint(np.asarray(values, dtype=float) / 0.05).astype(int), 0, G - 1)
 
 
-# Nash social welfare tools
 def gm(util):
     """Geometric-mean NSW over the last axis (agents). Zero if any agent gets 0."""
     with np.errstate(divide="ignore"):
@@ -82,7 +81,6 @@ def make_alpha(I, p=4):
     return lambda k: (k / I) ** p
 
 
-# Environment (simulator)
 class Env:
     """M agents, A arms, true distributions P (M, A, G).
     rho = probability that a probed value is stale when the agent arrives (rho = 0: OFMUP setting)."""
@@ -102,7 +100,7 @@ class Env:
         probability 1 - rho (one staleness event per arm per round);
         otherwise the agent gets a fresh draw."""
         stale = rng.random(self.A) < self.rho
-        Y = sample_grid(self.P[np.arange(self.M), arms], rng)          # fresh draws
+        Y = sample_grid(self.P[np.arange(self.M), arms], rng)
         pos = {a: i for i, a in enumerate(S)}
         for j, a in enumerate(arms):
             if a in pos and not stale[a]:
@@ -153,7 +151,6 @@ def taxi_env(csv_path, M, A, rng, rho=0.0, n_pickups=500,
     return Env(P, rho)
 
 
-# Learner statistics (empirical distributions, means, UCBs)
 class Stats:
     def __init__(self, M, A):
         self.counts = np.zeros((M, A, G))
@@ -185,7 +182,6 @@ class Stats:
         return np.where(N > 0, np.minimum(m + w, 1.0), 1.0)
 
 
-# Greedy probing (Xu et al.'s Algorithm 1) with the staleness transform
 def algorithm1(P, m, alpha, I, rho, rng, K=24, iters=50, cap=None):
     """Greedy probe selection.
 
@@ -208,8 +204,8 @@ def algorithm1(P, m, alpha, I, rho, rng, K=24, iters=50, cap=None):
         chain.append(S)
     chain = [s for s in chain if alpha(len(s)) < 1]
 
-    X = sample_grid(P, rng, K)                                   # (K, M, A)
-    Xt = (1 - rho) * X + rho * m[None]                           # staleness transform
+    X = sample_grid(P, rng, K)
+    Xt = (1 - rho) * X + rho * m[None]
     r = np.broadcast_to(m, (len(chain), K, M, A)).copy()
     for i, s in enumerate(chain):
         if s:
@@ -224,7 +220,7 @@ def offline_opt(env, alpha, I, cap=None, K=300, iters=80, seed=12345, chunk=24):
     M, A, mu = env.M, env.A, env.mu
     X = sample_grid(env.P, rng, K)
     Xt = (1 - env.rho) * X + env.rho * mu[None]
-    best = float(best_nsw(mu, iters, cap))                       # no probing
+    best = float(best_nsw(mu, iters, cap))
     for k in range(1, I + 1):
         if alpha(k) >= 1:
             continue
@@ -238,7 +234,6 @@ def offline_opt(env, alpha, I, cap=None, K=300, iters=80, seed=12345, chunk=24):
     return best
 
 
-# Online algorithms: OFMUP (Xu et al.'s Algorithm 2), baselines and SA-OFMUP
 METHODS = {
     "Random P+A":  dict(probe="random", assign="random"),
     "Greedy P+A":  dict(probe="greedy", assign="random"),
@@ -273,7 +268,7 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
     rho_hat = env.rho if (cfg["stale_aware"] and not cfg["learn_rho"]) else 0.0
     num = x_sum = 0.0
     n_pairs = 0
-    sel = np.zeros((M, A))                            # probe-pull pairs per (agent, arm)
+    sel = np.zeros((M, A))
     rho_point = 0.0
     inst = np.zeros(T)
     probes = np.zeros(T)
@@ -281,7 +276,7 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
     point_trace = np.zeros(T)
     earned = np.zeros(M)
 
-    # Warm start: agent j_t tries arm a_t once.
+
     for t in range(M * A):
         j, a = t % M, t // M
         st.add(j, a, env.probe([a], rng)[j, 0])
@@ -327,21 +322,21 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
                     sel[j, a] += 1
                     n_pairs += 1
                 if not cfg["count_fix"]:
-                    st.add(j, a, Y[j])                # OFMUP records the probed draw again
+                    st.add(j, a, Y[j])
             else:
                 st.add(j, a, Y[j])
         if cfg["learn_rho"]:
-            # Ratio estimator; the denominator uses the current means.
+
             den = x_sum - float((sel * st.mu_hat).sum())
             rho_point = float(np.clip(num / den, 0.0, 1.0)) if den >= kappa else 0.0
             if cfg["lcb"]:
-                # Lower confidence bound, so a noisy early estimate cannot stop probing for good.
+
                 rho_hat = (float(np.clip((num - lcb_c * np.sqrt(n_pairs)) / den, 0.0, 1.0))
                            if den >= kappa else 0.0)
             else:
                 rho_hat = rho_point
 
-        # Score the decision with the true mu and rho.
+
         v = mu.copy()
         if S:
             v[:, S] = (1 - env.rho) * X + env.rho * mu[:, S]

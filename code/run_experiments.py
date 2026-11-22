@@ -26,14 +26,14 @@ COLORS = {"Random P+A": "tab:blue", "Non-Probing": "tab:orange", "Greedy P+A": "
           "SA-OFMUP (learned rho)": "tab:gray", "SA-OFMUP (learned rho, LCB)": "black"}
 STALE_METHODS = ["Non-Probing", "OFMUP", "OFMUP+fix", "SA-OFMUP (learned rho, LCB)",
                  "SA-OFMUP (known rho)", "SA-OFMUP (learned rho)"]
-SETTINGS = {                                   # Figure 1 panels
+SETTINGS = {
     "a": ("bernoulli", 12, 8), "b": ("bernoulli", 20, 10),
     "c": ("discrete", 12, 8),  "d": ("discrete", 20, 10),
 }
 
 
 def make_env(kind, M, A, seed, rho, taxi_csv=None):
-    rng = np.random.default_rng(1000 + seed)     # a new problem instance per seed
+    rng = np.random.default_rng(1000 + seed)
     if kind == "bernoulli":
         return bernoulli_env(M, A, rng, rho)
     if kind == "discrete":
