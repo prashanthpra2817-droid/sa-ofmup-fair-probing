@@ -1,17 +1,11 @@
 """
-sa_ofmup.py
-===========
-Reproduction of OFMUP from "Fair Algorithms with Probing for Multi-Agent
-Multi-Armed Bandits" (Xu, Liu, Mattei & Zheng, AAAI-26), plus the novelty:
-Staleness-Aware OFMUP (SA-OFMUP).
+OFMUP (Xu, Liu, Mattei & Zheng, AAAI-26) and the staleness-aware extension SA-OFMUP.
 
-One code base, three switches (all OFF = the paper's OFMUP):
+Switches (all off = OFMUP):
     stale_aware : use (1 - rho) * probe + rho * mean instead of the raw probe value
-    count_fix   : a pull from a zone probed in the same round is NOT a new sample
+    count_fix   : a pull from an arm probed in the same round is not a new sample
     learn_rho   : estimate the staleness probability rho online from probe-pull pairs
-
-Interpretation choices that the paper leaves open are marked "CHOICE" and
-explained in README.md.
+    lcb         : plan with a lower confidence bound on rho
 """
 from __future__ import annotations
 
@@ -19,8 +13,7 @@ from itertools import combinations
 
 import numpy as np
 
-# Rewards live on a fixed grid 0, 0.05, ..., 1.0 (covers Bernoulli {0,1},
-# the paper's discrete {0.3,...,0.8}, and binned taxi rewards).
+# Rewards live on a fixed grid 0, 0.05, ..., 1.0.
 GRID = np.round(np.arange(21) * 0.05, 2)
 G = len(GRID)
 
@@ -29,12 +22,9 @@ def to_grid_idx(values):
     return np.clip(np.rint(np.asarray(values, dtype=float) / 0.05).astype(int), 0, G - 1)
 
 
-# --------------------------------------------------------------------------
 # Nash social welfare tools
-# --------------------------------------------------------------------------
 def gm(util):
-    """Geometric-mean NSW over the last axis (agents). Zero if any agent gets 0.
-    CHOICE: the paper's experiments aggregate NSW with the geometric mean."""
+    """Geometric-mean NSW over the last axis (agents). Zero if any agent gets 0."""
     with np.errstate(divide="ignore"):
         return np.exp(np.mean(np.log(util), axis=-1))
 
@@ -43,14 +33,11 @@ def solve_nsw(r, iters=60, cap=None):
     """Maximise geometric-mean NSW. Always returns a matrix policy pi (..., M, n),
     where pi[j, a] = probability that agent j is sent to arm a.
 
-    cap=None  -> "shared" model: one distribution over arms for everyone
-                 (paper's line 14 'pi in Delta^A', and Jones et al. 2023).
-    cap=c     -> "matrix" model: each agent has its own row (rows sum to 1) and
-                 each arm receives at most c agents in expectation. The paper's
-                 cap of 1 is infeasible when M > A, so CHOICE: c = M / A.
+    cap=None  -> shared model: one distribution over arms for every agent.
+    cap=c     -> matrix model: each agent has its own row, and each arm receives
+                 at most c agents in expectation (c = M / A in the experiments).
 
-    Both use a multiplicative (EM-style) update; the matrix model adds a few
-    capacity-scaling passes after each step (approximate projection)."""
+    Multiplicative (EM-style) updates; the matrix model adds capacity scaling."""
     r = np.maximum(r, 1e-9)
     M, n = r.shape[-2:]
     if cap is None:
@@ -91,18 +78,14 @@ def sample_grid(P, rng, K=None):
 
 
 def make_alpha(I, p=4):
-    """Probing overhead. CHOICE: the paper does not give alpha; this one is
-    non-decreasing with alpha(0) = 0 and alpha(I) = 1, as the paper requires."""
+    """Probing overhead alpha(k) = (k / I)^p: non-decreasing, alpha(0) = 0, alpha(I) = 1."""
     return lambda k: (k / I) ** p
 
 
-# --------------------------------------------------------------------------
 # Environment (simulator)
-# --------------------------------------------------------------------------
 class Env:
-    """M agents (drivers), A arms (zones), true distributions P (M, A, G).
-    rho = probability that a probed value is stale when the driver arrives.
-    rho = 0 is exactly the paper's setting."""
+    """M agents, A arms, true distributions P (M, A, G).
+    rho = probability that a probed value is stale when the agent arrives (rho = 0: OFMUP setting)."""
 
     def __init__(self, P, rho=0.0):
         self.P = np.asarray(P, dtype=float)
@@ -111,14 +94,14 @@ class Env:
         self.mu = self.P @ GRID
 
     def probe(self, S, rng):
-        """Probe zones S: one draw for every agent on every probed zone -> (M, |S|)."""
+        """Probe arms S: one draw for every agent on every probed arm -> (M, |S|)."""
         return sample_grid(self.P[:, S], rng)
 
     def pull(self, arms, S, X, rng):
-        """Each agent j goes to zone arms[j]. A probed value stays valid with
-        probability 1 - rho (one staleness event per zone per round);
+        """Each agent j goes to arm arms[j]. A probed value stays valid with
+        probability 1 - rho (one staleness event per arm per round);
         otherwise the agent gets a fresh draw."""
-        stale = rng.random(self.A) < self.rho                          # [NEW]
+        stale = rng.random(self.A) < self.rho
         Y = sample_grid(self.P[np.arange(self.M), arms], rng)          # fresh draws
         pos = {a: i for i, a in enumerate(S)}
         for j, a in enumerate(arms):
@@ -128,7 +111,7 @@ class Env:
 
 
 def bernoulli_env(M, A, rng, rho=0.0):
-    """Paper: rewards 0 or 1 with means in [0.3, 0.8]."""
+    """Bernoulli rewards with means in [0.3, 0.8]."""
     mu = rng.uniform(0.3, 0.8, (M, A))
     P = np.zeros((M, A, G))
     P[..., 0], P[..., -1] = 1 - mu, mu
@@ -136,8 +119,7 @@ def bernoulli_env(M, A, rng, rho=0.0):
 
 
 def discrete_env(M, A, rng, rho=0.0):
-    """Paper: rewards sampled from {0.3, 0.4, 0.5, 0.6, 0.7, 0.8}.
-    CHOICE: random probabilities over these six values for each pair."""
+    """Rewards on {0.3, 0.4, 0.5, 0.6, 0.7, 0.8} with random probabilities per pair."""
     support = to_grid_idx([0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
     P = np.zeros((M, A, G))
     P[..., support] = rng.dirichlet(np.ones(6), size=(M, A))
@@ -146,7 +128,7 @@ def discrete_env(M, A, rng, rho=0.0):
 
 def taxi_env(csv_path, M, A, rng, rho=0.0, n_pickups=500,
              lon_bounds=(-74.05, -73.75), lat_bounds=(40.60, 40.90)):
-    """NYC Yellow Taxi 2016 setup (semi-synthetic, as in the paper):
+    """NYC Yellow Taxi 2016 setup (semi-synthetic, as in Xu et al.):
     vehicles = agents at fixed random positions inside the city bounds;
     arms = the A busiest 0.01-degree pickup cells; reward = 1 - normalised
     Manhattan distance from the vehicle to a random pickup in that cell.
@@ -171,9 +153,7 @@ def taxi_env(csv_path, M, A, rng, rho=0.0, n_pickups=500,
     return Env(P, rho)
 
 
-# --------------------------------------------------------------------------
 # Learner statistics (empirical distributions, means, UCBs)
-# --------------------------------------------------------------------------
 class Stats:
     def __init__(self, M, A):
         self.counts = np.zeros((M, A, G))
@@ -191,37 +171,33 @@ class Stats:
         return np.where(N > 0, (self.counts @ GRID) / np.maximum(N, 1), 0.0)
 
     def P_hat(self):
-        """Empirical distributions. Pairs with no data: optimistic point mass at 1
-        (CHOICE: the paper's 'F_hat <- 1, optimistic')."""
+        """Empirical distributions; pairs with no data get an optimistic point mass at 1."""
         N = self.N
         P = self.counts / np.maximum(N, 1)[..., None]
         P[N == 0, -1] = 1.0
         return P
 
     def ucb(self, L):
-        """Paper's Lemma 7 bonus: w = sqrt(2 (mu - mu^2) L / N) + L / (3N)."""
+        """Empirical-Bernstein bonus: w = sqrt(2 (mu - mu^2) L / N) + L / (3N)."""
         N, m = self.N, self.mu_hat
         n = np.maximum(N, 1)
         w = np.sqrt(2 * np.clip(m - m ** 2, 0, None) * L / n) + L / (3 * n)
         return np.where(N > 0, np.minimum(m + w, 1.0), 1.0)
 
 
-# --------------------------------------------------------------------------
-# Algorithm 1: greedy probing (with the staleness transform)
-# --------------------------------------------------------------------------
+# Greedy probing (Xu et al.'s Algorithm 1) with the staleness transform
 def algorithm1(P, m, alpha, I, rho, rng, K=24, iters=50, cap=None):
-    """P: (M, A, G) planning distributions (true offline, F_hat online)
-    m: (M, A) means used for unprobed arms and for the stale part
-    rho: staleness used by the planner (0 -> the paper's Algorithm 1)
+    """Greedy probe selection.
 
-    Step 1 (paper lines 1-5): greedy chain S_0 c S_1 c ... c S_I, adding the arm
-      with the largest gain in f_upper = phi(g). phi is increasing, so the
-      greedy order is the order of g itself (we use g directly).
-      g(S) = best NSW using only probed arms; with the max outside the
-      expectation (as written in the paper) and independent agents, this is
-      the NSW of the means restricted to S.
-    Step 2 (CHOICE, replaces lines 6-14): pick the chain set with the largest
-      Monte Carlo estimate of R(S) = (1 - alpha(|S|)) E[max_pi NSW]. See README."""
+    P: (M, A, G) planning distributions (true offline, F_hat online).
+    m: (M, A) means used for unprobed arms and for the stale part.
+    rho: staleness used by the planner (rho = 0 gives Xu et al.'s Algorithm 1).
+
+    Step 1: greedy chain S_0 c S_1 c ... c S_I, adding the arm with the largest
+      gain in g(S), the best NSW using only probed arms (phi is increasing, so
+      this is the same order as f_upper = phi(g)).
+    Step 2: return the chain set with the largest Monte Carlo estimate of
+      R(S) = (1 - alpha(|S|)) E[max_pi NSW]."""
     M, A, _ = P.shape
     chain, S = [[]], []
     for _ in range(I):
@@ -233,7 +209,7 @@ def algorithm1(P, m, alpha, I, rho, rng, K=24, iters=50, cap=None):
     chain = [s for s in chain if alpha(len(s)) < 1]
 
     X = sample_grid(P, rng, K)                                   # (K, M, A)
-    Xt = (1 - rho) * X + rho * m[None]                           # [NEW] staleness transform
+    Xt = (1 - rho) * X + rho * m[None]                           # staleness transform
     r = np.broadcast_to(m, (len(chain), K, M, A)).copy()
     for i, s in enumerate(chain):
         if s:
@@ -243,8 +219,7 @@ def algorithm1(P, m, alpha, I, rho, rng, K=24, iters=50, cap=None):
 
 
 def offline_opt(env, alpha, I, cap=None, K=300, iters=80, seed=12345, chunk=24):
-    """Per-round value of the best (S, pi) with TRUE mu and rho (exhaustive search,
-    as in the paper). This is the regret benchmark (paper's Equation 1)."""
+    """Per-round value of the best (S, pi) with the true mu and rho, by exhaustive search (regret benchmark)."""
     rng = np.random.default_rng(seed)
     M, A, mu = env.M, env.A, env.mu
     X = sample_grid(env.P, rng, K)
@@ -263,9 +238,7 @@ def offline_opt(env, alpha, I, cap=None, K=300, iters=80, seed=12345, chunk=24):
     return best
 
 
-# --------------------------------------------------------------------------
-# Online algorithms (paper's Algorithm 2 + baselines + SA-OFMUP)
-# --------------------------------------------------------------------------
+# Online algorithms: OFMUP (Xu et al.'s Algorithm 2), baselines and SA-OFMUP
 METHODS = {
     "Random P+A":  dict(probe="random", assign="random"),
     "Greedy P+A":  dict(probe="greedy", assign="random"),
@@ -308,24 +281,24 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
     point_trace = np.zeros(T)
     earned = np.zeros(M)
 
-    # Warm start (paper lines 5-10): agent j_t tries arm a_t once.
+    # Warm start: agent j_t tries arm a_t once.
     for t in range(M * A):
         j, a = t % M, t // M
         st.add(j, a, env.probe([a], rng)[j, 0])
-        inst[t] = opt if count_warmup else 0.0       # CHOICE: see README
+        inst[t] = opt if count_warmup else 0.0
         rho_trace[t] = rho_hat
 
-    for t in range(M * A, T):                         # main loop (lines 11-16)
+    for t in range(M * A, T):
         rho_use = rho_hat if cfg["stale_aware"] else 0.0
         P_hat = st.P_hat()
         if cfg["probe"] == "none":
             S = []
         elif cfg["probe"] == "random":
             S = sorted(rng.choice(A, n_random_probe, replace=False).tolist())
-        else:                                         # line 12 (+ rho_use) [CHANGED]
+        else:
             S = algorithm1(P_hat, P_hat @ GRID, alpha, I, rho_use, rng, K, cap=cap)
 
-        if S:                                         # line 13
+        if S:
             X = env.probe(S, rng)
             jj, aa = np.meshgrid(np.arange(M), S, indexing="ij")
             st.add(jj.ravel(), aa.ravel(), X.ravel())
@@ -333,49 +306,42 @@ def run(env, method, T=3000, I=4, delta=0.1, seed=0, opt=None, n_random_probe=2,
             X = np.zeros((M, 0))
         U = st.ucb(L)
 
-        if cfg["assign"] == "random":                 # line 14
+        if cfg["assign"] == "random":
             pi = np.full((M, A), 1.0 / A)
         else:
             r = U.copy()
-            if S:                                     # [CHANGED]
+            if S:
                 r[:, S] = (1 - rho_use) * X + rho_use * U[:, S]
             pi = solve_nsw(r, cap=cap)
 
-        arms = np.minimum((rng.random((M, 1)) > np.cumsum(pi, axis=1)).sum(axis=1), A - 1)  # line 15
+        arms = np.minimum((rng.random((M, 1)) > np.cumsum(pi, axis=1)).sum(axis=1), A - 1)
         Y = env.pull(arms, S, X, rng)
         earned += Y
 
-        pos = {a: i for i, a in enumerate(S)}         # line 16 [CHANGED]
+        pos = {a: i for i, a in enumerate(S)}
         for j, a in enumerate(arms):
             if a in pos:
-                if cfg["learn_rho"]:                  # [NEW] probe-pull pairs
+                if cfg["learn_rho"]:
                     num += X[j, pos[a]] - Y[j]
                     x_sum += X[j, pos[a]]
                     sel[j, a] += 1
                     n_pairs += 1
                 if not cfg["count_fix"]:
-                    st.add(j, a, Y[j])                # paper: counts the same draw again
+                    st.add(j, a, Y[j])                # OFMUP records the probed draw again
             else:
                 st.add(j, a, Y[j])
-        if cfg["learn_rho"]:                          # [NEW] ratio estimator
-            # den = sum_i (X_i - mu_i), with mu_i taken from the CURRENT means
-            # (all data so far). Using the means from before the round biases
-            # rho_hat upwards: probed arms are picked because their estimated
-            # means were high ("winner's curse"); current means wash this out.
+        if cfg["learn_rho"]:
+            # Ratio estimator; the denominator uses the current means.
             den = x_sum - float((sel * st.mu_hat).sum())
             rho_point = float(np.clip(num / den, 0.0, 1.0)) if den >= kappa else 0.0
             if cfg["lcb"]:
-                # Plan with a LOWER confidence bound on rho: keep trusting probes
-                # until the data show they are stale. Without this, a noisy early
-                # estimate can stop probing, and with no probes there are no new
-                # probe-pull pairs, so the estimate can never correct itself.
-                # The width is the Azuma-Hoeffding term of the consistency sketch.
+                # Lower confidence bound, so a noisy early estimate cannot stop probing for good.
                 rho_hat = (float(np.clip((num - lcb_c * np.sqrt(n_pairs)) / den, 0.0, 1.0))
                            if den >= kappa else 0.0)
             else:
                 rho_hat = rho_point
 
-        # Score the decision with the TRUE mu and TRUE rho (never the estimates).
+        # Score the decision with the true mu and rho.
         v = mu.copy()
         if S:
             v[:, S] = (1 - env.rho) * X + env.rho * mu[:, S]

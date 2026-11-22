@@ -1,4 +1,4 @@
-"""T = 3000 test of the rho = 0.8 claim (resumable, one file per seed)."""
+"""Setting (a) at T = 3000 and rho = 0.8 (resumable, one file per seed)."""
 import os, sys, numpy as np
 from sa_ofmup import bernoulli_env, make_alpha, offline_opt, run
 T, RHO, M, A, I, P = 3000, 0.8, 12, 8, 4, 3

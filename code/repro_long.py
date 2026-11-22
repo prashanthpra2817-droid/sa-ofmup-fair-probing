@@ -1,4 +1,4 @@
-"""Figure 1 setting (a) at the paper's horizon T = 3000 (resumable, one file per seed)."""
+"""Setting (a) at T = 3000 and rho = 0 (resumable, one file per seed)."""
 import os, numpy as np
 from sa_ofmup import bernoulli_env, make_alpha, offline_opt, run
 T, M, A, I, P = 3000, 12, 8, 4, 3

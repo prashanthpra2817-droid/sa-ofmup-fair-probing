@@ -2,7 +2,7 @@
 run_experiments.py
 ==================
   python run_experiments.py repro  --T 3000 --seeds 5      # Figure 1 style (rho = 0)
-  python run_experiments.py stale  --T 3000 --seeds 5      # novelty: sweep over rho
+  python run_experiments.py stale  --T 3000 --seeds 5      # staleness sweep over rho
   python run_experiments.py repro  --quick                 # fast smoke test
 
 Results (plots + CSV) go to ./results/.
@@ -26,7 +26,7 @@ COLORS = {"Random P+A": "tab:blue", "Non-Probing": "tab:orange", "Greedy P+A": "
           "SA-OFMUP (learned rho)": "tab:gray", "SA-OFMUP (learned rho, LCB)": "black"}
 STALE_METHODS = ["Non-Probing", "OFMUP", "OFMUP+fix", "SA-OFMUP (learned rho, LCB)",
                  "SA-OFMUP (known rho)", "SA-OFMUP (learned rho)"]
-SETTINGS = {                                   # paper's Figure 1 panels
+SETTINGS = {                                   # Figure 1 panels
     "a": ("bernoulli", 12, 8), "b": ("bernoulli", 20, 10),
     "c": ("discrete", 12, 8),  "d": ("discrete", 20, 10),
 }

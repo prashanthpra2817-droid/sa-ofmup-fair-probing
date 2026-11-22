@@ -12,8 +12,7 @@ LABEL = {"Non-Probing": "Non-Probing", "OFMUP": "OFMUP", "OFMUP+fix": "OFMUP+fix
          "SA-OFMUP (known rho)": r"SA-OFMUP (known $\rho$)",
          "SA-OFMUP (learned rho)": "SA-OFMUP (point estimate)",
          "SA-OFMUP (learned rho, LCB)": "SA-OFMUP (LCB, final)"}
-# One colour per method in every figure. The four original methods keep the
-# paper's colours (as in Figure 1); the final method is black.
+# One colour per method in every figure; SA-OFMUP (LCB, final) is black.
 STYLE = {"Random P+A": dict(c="tab:blue"), "Non-Probing": dict(c="tab:orange"),
          "Greedy P+A": dict(c="tab:green"), "OFMUP": dict(c="tab:red"),
          "OFMUP+fix": dict(c="tab:red", ls=":"),
@@ -29,7 +28,7 @@ def chunks(rho):
 def staleness_figure():
     fig, ax = plt.subplots(1, 4, figsize=(20, 4.4))
     methods = ["Non-Probing", "OFMUP", "SA-OFMUP (known rho)", "SA-OFMUP (learned rho)",
-               "SA-OFMUP (learned rho, LCB)"]           # OFMUP+fix omitted: identical to OFMUP within noise
+               "SA-OFMUP (learned rho, LCB)"]           # OFMUP+fix is indistinguishable from OFMUP
     for m in methods:
         reg = np.array([[c[m + "|regret"][-1] for c in chunks(r)] for r in RHOS])
         prb = [np.mean([c[m + "|probes"][M * A:].mean() for c in chunks(r)]) for r in RHOS]
