@@ -22,7 +22,7 @@ for p in panels:
     lines.append(f"({p}) {env['env'][:4]}., $M$={env['M']}, $A$={env['A']} & " + " & ".join(cells) + r" \\")
     o = d["OFMUP"][0]
     red = {m: 100 * (1 - o / d[m][0]) for m in methods[:3]}
-    lines.append(r"\quad OFMUP reduction & " + " & ".join(f"{red[m]:.0f}\\%" for m in methods[:3]) + r" & -- \\")
+    lines.append(r"\quad OFMUP reduction & " + " & ".join(f"{red[m]:.0f}\\%" for m in methods[:3]) + r" & - \\")
     if p == "a":
         nums += [f"\\newcommand{{\\RedRandA}}{{{red['Random P+A']:.0f}}}",
                  f"\\newcommand{{\\RedGPA}}{{{red['Greedy P+A']:.0f}}}",

@@ -85,7 +85,7 @@ cd report
 pdflatex report && bibtex report && pdflatex report && pdflatex report
 ```
 
-`aaai2026.sty` and `aaai2026.bst` are stand-ins that reproduce the AAAI layout.
+`aaai.sty` and `aaai.bst` are stand-ins that reproduce the AAAI layout.
 Replace them with the official files from the AAAI author kit for the
 camera-ready format; no change to `report.tex` is needed.
 
