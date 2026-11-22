@@ -1,0 +1,24 @@
+\begin{tabular}{lrrr}
+\toprule
+Method & $\rho=0$ & $\rho=0.4$ & $\rho=0.8$ \\
+\midrule
+\multicolumn{4}{l}{\emph{Final cumulative regret (mean $\pm$ s.d.)}} \\
+Non-Probing & 175.7 $\pm$ 4.0 & 144.6 $\pm$ 4.2 & 123.7 $\pm$ 4.1 \\
+OFMUP & 128.9 $\pm$ 6.2 & 123.6 $\pm$ 2.8 & 128.9 $\pm$ 3.5 \\
+OFMUP+fix & 130.5 $\pm$ 4.2 & 122.5 $\pm$ 1.9 & 126.4 $\pm$ 1.1 \\
+SA-OFMUP (known $\rho$) & 130.5 $\pm$ 4.2 & 124.9 $\pm$ 1.9 & 125.5 $\pm$ 1.0 \\
+SA-OFMUP (point estimate) & 130.5 $\pm$ 4.2 & 134.6 $\pm$ 5.3 & 125.3 $\pm$ 2.6 \\
+\textbf{SA-OFMUP (LCB, final)} & 130.5 $\pm$ 4.2 & 117.9 $\pm$ 7.4 & 116.2 $\pm$ 5.4 \\
+\midrule
+\multicolumn{4}{l}{\emph{Arms probed per round}} \\
+OFMUP & 0.97 & 0.97 & 0.97 \\
+OFMUP+fix & 0.97 & 0.97 & 0.97 \\
+SA-OFMUP (known $\rho$) & 0.97 & 0.95 & 0.00 \\
+SA-OFMUP (point estimate) & 0.97 & 0.48 & 0.01 \\
+\textbf{SA-OFMUP (LCB, final)} & 0.97 & 0.97 & 0.31 \\
+\midrule
+\multicolumn{4}{l}{\emph{Final estimate of $\rho$}} \\
+SA-OFMUP (point estimate) & 0.00 & 0.52 & 0.82 \\
+SA-OFMUP (LCB), point estimate & 0.00 & 0.43 & 0.80 \\
+\bottomrule
+\end{tabular}

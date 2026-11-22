@@ -1,0 +1,32 @@
+% ---------------------------------------------------------------------------
+% STAND-IN for the official AAAI Press style file "aaai2026.sty".
+% It only mimics the look (two columns, Times, 0.75in margins) so the report
+% compiles without the author kit. Before submission, download the AAAI Press
+% author kit (https://aaai.org/authorkit26/) and replace this file and
+% aaai2026.bst with the official ones; no change to report.tex is needed.
+% ---------------------------------------------------------------------------
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{aaai2026}[2026/01/01 stand-in AAAI style]
+\RequirePackage{times}
+\RequirePackage{helvet}
+\RequirePackage{courier}
+\RequirePackage[letterpaper,left=0.75in,right=0.75in,top=0.75in,bottom=1in]{geometry}
+\RequirePackage{titlesec}
+\@twocolumntrue
+\setlength{\columnsep}{0.25in}
+\pagestyle{empty}
+\titleformat{\section}{\centering\large\bfseries}{\thesection}{0.6em}{}
+\titlespacing{\section}{0pt}{10pt plus 2pt}{4pt}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing{\subsection}{0pt}{8pt plus 2pt}{3pt}
+\titleformat{\subsubsection}[runin]{\normalsize\bfseries}{}{0em}{}[.]
+\newcommand{\affiliations}[1]{\gdef\@affiliations{#1}}
+\def\@affiliations{}
+\newcommand{\nocopyright}{}
+\renewcommand{\maketitle}{\twocolumn[%
+  \begin{center}
+    {\LARGE\bfseries \@title\par}\vskip 10pt
+    {\large \@author\par}\vskip 4pt
+    {\normalsize \@affiliations\par}
+  \end{center}\vskip 12pt]}
+\renewenvironment{abstract}{\noindent{\centering\bfseries Abstract\par}\vskip 4pt\begin{quotation}\noindent\small}{\end{quotation}\vskip 6pt}

@@ -1,0 +1,9 @@
+rho=0.0 seed=0 SA-OFMUP (learned rho, LCB) regret=131.8
+rho=0.0 seed=1 SA-OFMUP (learned rho, LCB) regret=124.8
+rho=0.0 seed=2 SA-OFMUP (learned rho, LCB) regret=134.8
+rho=0.4 seed=0 SA-OFMUP (learned rho, LCB) regret=124.9
+rho=0.4 seed=1 SA-OFMUP (learned rho, LCB) regret=107.6
+rho=0.4 seed=2 SA-OFMUP (learned rho, LCB) regret=121.0
+rho=0.8 seed=0 SA-OFMUP (learned rho, LCB) regret=117.1
+rho=0.8 seed=1 SA-OFMUP (learned rho, LCB) regret=109.2
+rho=0.8 seed=2 SA-OFMUP (learned rho, LCB) regret=122.3

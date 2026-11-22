@@ -1,0 +1,12 @@
+seed=0 Non-Probing                  regret=199.6 probes=0.00 planned=0.00 point=0.00
+seed=0 OFMUP                        regret=210.6 probes=0.98 planned=0.00 point=0.00
+seed=0 SA-OFMUP (known rho)         regret=184.9 probes=0.00 planned=0.80 point=0.00
+seed=0 SA-OFMUP (learned rho, LCB)  regret=176.3 probes=0.22 planned=0.63 point=0.77
+seed=1 Non-Probing                  regret=180.9 probes=0.00 planned=0.00 point=0.00
+seed=1 OFMUP                        regret=213.2 probes=0.99 planned=0.00 point=0.00
+seed=1 SA-OFMUP (known rho)         regret=182.9 probes=0.00 planned=0.80 point=0.00
+seed=1 SA-OFMUP (learned rho, LCB)  regret=167.3 probes=0.09 planned=0.68 point=0.83
+seed=2 Non-Probing                  regret=196.1 probes=0.00 planned=0.00 point=0.00
+seed=2 OFMUP                        regret=201.6 probes=0.99 planned=0.00 point=0.00
+seed=2 SA-OFMUP (known rho)         regret=192.8 probes=0.00 planned=0.80 point=0.00
+seed=2 SA-OFMUP (learned rho, LCB)  regret=193.6 probes=0.05 planned=0.65 point=0.85

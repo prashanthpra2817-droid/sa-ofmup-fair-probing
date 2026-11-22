@@ -1,0 +1,45 @@
+rho=0.0 seed=0 Non-Probing              regret=179.1
+rho=0.0 seed=0 OFMUP                    regret=134.0
+rho=0.0 seed=0 OFMUP+fix                regret=131.8
+rho=0.0 seed=0 SA-OFMUP (known rho)     regret=131.8
+rho=0.0 seed=0 SA-OFMUP (learned rho)   regret=131.8
+rho=0.0 seed=1 Non-Probing              regret=170.1
+rho=0.0 seed=1 OFMUP                    regret=120.2
+rho=0.0 seed=1 OFMUP+fix                regret=124.8
+rho=0.0 seed=1 SA-OFMUP (known rho)     regret=124.8
+rho=0.0 seed=1 SA-OFMUP (learned rho)   regret=124.8
+rho=0.0 seed=2 Non-Probing              regret=177.9
+rho=0.0 seed=2 OFMUP                    regret=132.6
+rho=0.0 seed=2 OFMUP+fix                regret=134.8
+rho=0.0 seed=2 SA-OFMUP (known rho)     regret=134.8
+rho=0.0 seed=2 SA-OFMUP (learned rho)   regret=134.8
+rho=0.4 seed=0 Non-Probing              regret=150.0
+rho=0.4 seed=0 OFMUP                    regret=126.2
+rho=0.4 seed=0 OFMUP+fix                regret=124.1
+rho=0.4 seed=0 SA-OFMUP (known rho)     regret=122.5
+rho=0.4 seed=0 SA-OFMUP (learned rho)   regret=136.3
+rho=0.4 seed=1 Non-Probing              regret=139.8
+rho=0.4 seed=1 OFMUP                    regret=124.9
+rho=0.4 seed=1 OFMUP+fix                regret=119.8
+rho=0.4 seed=1 SA-OFMUP (known rho)     regret=125.2
+rho=0.4 seed=1 SA-OFMUP (learned rho)   regret=140.1
+rho=0.4 seed=2 Non-Probing              regret=144.1
+rho=0.4 seed=2 OFMUP                    regret=119.7
+rho=0.4 seed=2 OFMUP+fix                regret=123.6
+rho=0.4 seed=2 SA-OFMUP (known rho)     regret=127.0
+rho=0.4 seed=2 SA-OFMUP (learned rho)   regret=127.5
+rho=0.8 seed=0 Non-Probing              regret=129.5
+rho=0.8 seed=0 OFMUP                    regret=127.3
+rho=0.8 seed=0 OFMUP+fix                regret=126.1
+rho=0.8 seed=0 SA-OFMUP (known rho)     regret=124.8
+rho=0.8 seed=0 SA-OFMUP (learned rho)   regret=124.1
+rho=0.8 seed=1 Non-Probing              regret=120.1
+rho=0.8 seed=1 OFMUP                    regret=133.8
+rho=0.8 seed=1 OFMUP+fix                regret=127.9
+rho=0.8 seed=1 SA-OFMUP (known rho)     regret=124.9
+rho=0.8 seed=1 SA-OFMUP (learned rho)   regret=122.9
+rho=0.8 seed=2 Non-Probing              regret=121.6
+rho=0.8 seed=2 OFMUP                    regret=125.6
+rho=0.8 seed=2 OFMUP+fix                regret=125.2
+rho=0.8 seed=2 SA-OFMUP (known rho)     regret=126.9
+rho=0.8 seed=2 SA-OFMUP (learned rho)   regret=128.9
