@@ -119,12 +119,6 @@ experiments, and Section~\ref{sec:findings} analyses the formulation of OFMUP.
 Section~\ref{sec:limits} discusses limitations and future work, and finally,
 Section~\ref{sec:conclusion} concludes the paper.
 
-\section*{Artifacts Availability}
-Artifacts including experimental results are available at:~\url{https://github.com/prashanthpra2817-droid/sa-ofmup-fair-probing}.
-In this repository, the script \texttt{final\_\allowbreak one\_\allowbreak cell.py}, which runs as a
-single notebook cell, reruns every experiment and regenerates every figure and
-the data behind every table.
-
 \section{Background and Problem Setting}
 \label{sec:background}
 
@@ -190,7 +184,7 @@ $(1-\alpha(|S_t|))\E[\NSW(S_t,R_t,U_t,\pi_t)]$, pulls, and updates the
 statistics again. \phantomsection\label{thm:2}Theorem~2 of \citet{xu2026fair}
 bounds the regret by $O\big(\zeta(\sqrt{MAT}+MA)\ln^c(MAT/\delta)\big)$.
 
-\section{Reproduction Methodology}
+\section{Methodology}
 \label{sec:repro}
 
 We implemented the simulator, the NSW solver, both algorithms and the three
@@ -733,13 +727,6 @@ Furthermore, it plans with a lower confidence bound to avoid locking in on early
 noise and reduces exactly to OFMUP (with the counting fix) when probes are
 reliable. In our experiments, it also reduces probing and regret when probes
 are not reliable.
-
-\section*{Declaration of Generative AI}
-During the preparation of this work, the author used generative AI tools to
-assist with code development and writing, including \texttt{claude} and
-\texttt{perplexity} in order to enhance writing (some parts of the manuscript).
-After using these tools/services, the author reviewed and edited the content as
-needed and takes full responsibility for the content of the publication.
 
 \bibliographystyle{aaai}
 \bibliography{references}

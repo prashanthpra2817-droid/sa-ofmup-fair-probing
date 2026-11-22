@@ -50,7 +50,7 @@ for m in methods[1:]:
 lines.append(r"\midrule")
 lines.append(r"\multicolumn{%d}{l}{\emph{Final estimate of $\rho$}} \\" % (len(rhos) + 1))
 lines.append(short["SA-OFMUP (learned rho)"] + " & " + " & ".join(f"{get('SA-OFMUP (learned rho)', x, 'final_rho_hat'):.2f}" for x in rhos) + r" \\")
-lines.append(r"SA-OFMUP (LCB), point estimate & " + " & ".join(f"{get('SA-OFMUP (learned rho, LCB)', x, 'final_rho_hat'):.2f}" for x in rhos) + r" \\")
+lines.append(r"SA-OFMUP (LCB, final): point estimate & " + " & ".join(f"{get('SA-OFMUP (learned rho, LCB)', x, 'final_rho_hat'):.2f}" for x in rhos) + r" \\")
 lines += [r"\bottomrule", r"\end{tabular}"]
 open("tables/stale_table.tex", "w").write("\n".join(lines) + "\n")
 
