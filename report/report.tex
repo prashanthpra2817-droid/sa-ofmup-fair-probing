@@ -57,8 +57,8 @@ expectation in both probing and assignment, estimates $\rho$ online from
 probe--pull pairs with a ratio estimator that remains consistent under adaptive
 assignment under stated conditions (proof sketch), and plans with a lower confidence bound on $\rho$, so that probing
 continues until the data show that it is not worthwhile. At $\rho=0$, SA-OFMUP
-reduces exactly to OFMUP with the counting fix. Experiments on the synthetic
-settings of the original paper reproduce its ranking of methods; under
+reduces exactly to OFMUP with the counting fix. Experiments on the same synthetic
+settings reproduce the original ranking of methods; under
 staleness, SA-OFMUP learns $\rho$ accurately, matches OFMUP at $\rho=0.4$, and has
 lower regret than OFMUP on all three seeds at $\rho=0.8$ (about 10\% on average
 at $T=1500$ and 14\% at the original horizon $T=3000$; 3 seeds). I also report several
@@ -85,10 +85,10 @@ This project has two goals: to reproduce the methodology and results of
 \citet{xu2026fair} as faithfully as possible, and to extend the method in one
 substantive direction. My contributions are as follows.
 \begin{enumerate}
-  \item A from-scratch implementation of OFMUP, its three baselines and the
+  \item An independent implementation of OFMUP, its three baselines and the
         regret benchmark, with every open modelling choice documented
         (Section~\ref{sec:repro}).
-  \item A critical reading of the original paper that identifies problems a
+  \item A critical reading of \citet{xu2026fair} that identifies problems a
         reproduction cannot avoid: the capacity constraint is infeasible in
         its own experiments, lines 9 and 11 of Xu et al.'s Algorithm~1 compare
         quantities on different scales, Xu et al.'s Algorithm~2 counts some samples
@@ -125,7 +125,7 @@ mean $\mu_{j,a}$ otherwise. The objective is the product of utilities,
 \end{equation}
 NSW is Pareto efficient and scale invariant, and lies between the utilitarian
 sum and max--min fairness \citep{caragiannis2019unreasonable}. Following the
-experiments of the original paper, I report the geometric mean $\NSW^{1/M}$,
+experiments of \citet{xu2026fair}, I report the geometric mean $\NSW^{1/M}$,
 which has the same maximiser.
 
 \subsection{Probing cost and regret}
@@ -171,24 +171,24 @@ discuss the three most consequential below.
 \centering\small
 \begin{tabular}{p{0.3\columnwidth}p{0.62\columnwidth}}
 \toprule
-Open point in the original paper & My choice \\
+Open point & My choice \\
 \midrule
 Assignment constraints: rows of $\pi$ sum to 1, columns $\le 1$; infeasible when $M>A$ (all four experimental settings) & Each agent has its own row; each arm receives at most $M/A$ agents in expectation. A ``shared'' policy $\pi\in\Delta^A$ \citep{jones2023efficient} is also implemented. \\
 Overhead $\alpha$ not given & $\alpha(k)=(k/I)^3$ with $I=4$; satisfies $\alpha(0)=0$, $\alpha(I)=1$, non-decreasing. \\
 Xu et al.'s Algorithm 1, lines 9 and 11 compare $f_{\mathrm{upper}}$ (log scale, $\le 0$) with $h(\emptyset)$ and $\mathcal{R}(S_j)$ (NSW scale, $\ge 0$) & Keep the greedy chain (lines 1--5); return the chain set with the largest Monte Carlo estimate of $\mathcal{R}(S_j)$, including $S_0=\emptyset$. \\
-NSW aggregation & Geometric mean, as in the experiments of the original paper. \\
+NSW aggregation & Geometric mean, as in the original experiments. \\
 $\hat F_{j,a}\leftarrow 1$ ``optimistic'' initialisation & Point mass at reward 1. \\
 Warm-start rounds (one agent acts) & Not counted in regret. \\
 Discrete-reward distribution & Random (Dirichlet) weights on $\{0.3,\dots,0.8\}$. \\
 Optimal assignment given $S$ & Multiplicative (EM-style) ascent on $\sum_j\log u_j$ with capacity rescaling, 60 iterations. \\
 \bottomrule
 \end{tabular}
-\caption{Modelling choices required to run the method of \citet{xu2026fair}, which the original paper leaves unspecified.}
+\caption{Modelling choices required to run the method of \citet{xu2026fair}, that are not specified in their paper.}
 \label{tab:choices}
 \end{table}
 
 \paragraph{Capacity.}
-The original paper requires $\sum_j\pi_{j,a,t}\le1$ for every arm, yet its
+\citet{xu2026fair} require $\sum_j\pi_{j,a,t}\le1$ for every arm, yet its
 experiments use $M=12,A=8$ and $M=20,A=10$, for which no feasible $\pi$ exists
 (the total mass $M$ exceeds $A$). I relax the capacity to $M/A$ agents per arm.
 This preserves the intent of the constraint (no arm is over-used relative to
@@ -201,12 +201,12 @@ therefore cannot be executed as written. Since these lines serve to select a
 candidate with a good true value, I evaluate $\mathcal{R}(S_j)$ by Monte Carlo
 for all $I+1$ candidates and return the best, with
 $\mathcal{R}(\emptyset)=h(\emptyset)$ (no probing). The greedy chain itself is
-kept exactly as in the original paper. Moreover, $\phi$ is strictly increasing,
+kept exactly as specified. Moreover, $\phi$ is strictly increasing,
 so the greedy order is the order of $g$ itself: $\phi$ affects the proof of
 Theorem~1 but not the arms that the algorithm selects.
 
 \paragraph{Benchmark.}
-As in the original paper, the optimum is found by exhaustive search over all
+As in \citet{xu2026fair}, the optimum is found by exhaustive search over all
 probing sets with $|S|\le I$; the expectation over probe outcomes is estimated
 from 300 Monte Carlo draws, with the assignment re-optimised for each draw. I
 verified the benchmark: an oracle that knows $\mu$ and uses the optimal probing
@@ -230,7 +230,7 @@ With probability $\rho\in[0,1]$, independently for each arm and round and
 \emph{independently of the probed value}, a probed arm goes stale: an agent
 assigned to it obtains a fresh draw from $D_{j,a}$ instead of the probed value.
 With probability $1-\rho$ the probe remains valid. Agents assigned to unprobed
-arms always receive a fresh draw, as in the original paper. Setting $\rho=0$
+arms always receive a fresh draw, as in OFMUP. Setting $\rho=0$
 recovers the original model exactly.
 
 \subsection{Objective and assignment}
@@ -248,7 +248,7 @@ Like \eqref{eq:nsw}, this is a product of each agent's \emph{expected} utility,
 so the substitution is exact by linearity of expectation alone. No independence
 between agents is required, and the substitution remains exact when a single
 staleness event affects all agents assigned to the same arm. (It differs from
-$\E[\prod_j Y_j]$, which is not the objective of the original paper either.)
+$\E[\prod_j Y_j]$, which is not the original objective either.)
 Online, the unknown $\mu_{j,a}$ in \eqref{eq:condexp} is replaced by the same
 optimistic estimate $U_{j,a}$ that OFMUP already uses for unprobed arms, and
 $\rho$ by its estimate $\rhat$:
@@ -356,8 +356,8 @@ procedure; lines marked $\star$ differ from the original algorithm.
 \caption{SA-OFMUP (changes to Xu et al.'s Algorithm~2 marked $\star$)}
 \label{alg:sa}
 \begin{algorithmic}[1]
-\STATE Initialise $\hat F,N,\hat\mu,w$ as in the original paper; $\mathrm{num}\leftarrow0$, $\rhat\leftarrow0$ $\star$
-\STATE Warm start for $t=1,\dots,MA$ as in the original paper
+\STATE Initialise $\hat F,N,\hat\mu,w$ as in OFMUP; $\mathrm{num}\leftarrow0$, $\rhat\leftarrow0$ $\star$
+\STATE Warm start for $t=1,\dots,MA$ as in OFMUP
 \FOR{$t=MA+1,\dots,T$}
   \STATE $S_t\leftarrow{}$Xu et al.'s Algorithm~1$(\hat F,\alpha,I,\rhat)$ with transform $(1-\rhat)x+\rhat\,\bar F$ $\star$
   \STATE Probe $S_t$, observe $X_{j,a}$, update $\hat F,N,\hat\mu,w,U$
@@ -380,13 +380,13 @@ procedure; lines marked $\star$ differ from the original algorithm.
 \label{sec:exp}
 
 \subsection{Setup}
-I follow the original paper: $M=12,A=8$ (small) and $M=20,A=10$ (medium);
+I follow the experimental setup of \citet{xu2026fair}: $M=12,A=8$ (small) and $M=20,A=10$ (medium);
 Bernoulli rewards with means in $[0.3,0.8]$ and discrete rewards on
 $\{0.3,\dots,0.8\}$; budget $I=4$; and $\delta=0.1$. Owing to compute limits,
 the sweeps use $T=\TT$ rounds and $\Seeds$ seeds, with a new problem instance per
 seed; setting (a) at $\rho=0$ and the $\rho=0.8$ test were also run at the
 original horizon $T=3000$ (Tables~\ref{tab:repro3000} and \ref{tab:long},
-Figure~\ref{fig:long}). The baselines are those of the original paper:
+Figure~\ref{fig:long}). The baselines are the same three as in the original study:
 Non-Probing \citep{jones2023efficient}, Random P+A (random probes and uniform
 random assignment) and Greedy P+A (Xu et al.'s Algorithm~1 probes with random assignment).
 Regret is computed against the exhaustive-search optimum of the \emph{true}
@@ -411,21 +411,21 @@ agent acts and no regret is counted (Table~\ref{tab:choices}).}
 \centering\small
 \input{tables/repro_table}
 \caption{Final cumulative regret (mean $\pm$ s.d.\ over seeds) at $T=\TT$, and
-OFMUP's reduction relative to each baseline. The original paper reports
+OFMUP's reduction relative to each baseline. \citet{xu2026fair} report
 reductions of 85\%/60\% (vs.\ Random P+A/Greedy P+A) in setting (a) and
 88\%/80\% in (b) at $T=3000$; Table~\ref{tab:repro3000} gives the like-for-like
 comparison at $T=3000$.}
 \label{tab:repro}
 \end{table*}
 
-Figure~\ref{fig:repro} and Table~\ref{tab:repro} show that the qualitative
-findings of the original paper are reproduced: Random P+A is worst, Greedy P+A
+Figure~\ref{fig:repro} and Table~\ref{tab:repro} show that the original qualitative
+findings are reproduced: Random P+A is worst, Greedy P+A
 is next, and OFMUP has the lowest mean regret in all four settings, although in (d) its
 margin over Non-Probing is within the seed-to-seed variation, with Non-Probing
 between Greedy P+A and OFMUP. In setting (a), OFMUP's regret is \RedRandA\%
 lower than that of Random P+A, \RedGPA\% lower than that of Greedy P+A and
 \RedNPA\% lower than that of Non-Probing. At this horizon the reductions are
-smaller than those reported in the original paper. At the original horizon
+smaller than those reported by the authors. At the original horizon
 $T=3000$ (Table~\ref{tab:repro3000} and Figure~\ref{fig:long}, left), the
 reductions in setting (a) are 76\% vs.\ Random P+A, 70\% vs.\ Greedy P+A and
 32\% vs.\ Non-Probing. Against Random P+A this is closer to the reported 85\%;
@@ -449,14 +449,14 @@ Non-Probing & 302.3 & 284.2 & 312.6 & 299.7 $\pm$ 11.7 \\
 OFMUP & 209.7 & 193.3 & 207.9 & 203.6 $\pm$ 7.3 \\
 \bottomrule
 \end{tabular}
-\caption{Final cumulative regret in setting (a) at the original paper's horizon $T=3000$ (3 seeds). OFMUP's reduction: 76\% vs.\ Random P+A, 70\% vs.\ Greedy P+A, 32\% vs.\ Non-Probing.}
+\caption{Final cumulative regret in setting (a) at the original horizon $T=3000$ (3 seeds). OFMUP's reduction: 76\% vs.\ Random P+A, 70\% vs.\ Greedy P+A, 32\% vs.\ Non-Probing.}
 \label{tab:repro3000}
 \end{table}
 
 The comparison between Greedy P+A and Non-Probing is instructive: probing
 without fair assignment is clearly worse than fair assignment without probing,
 so the two ingredients are complementary rather than interchangeable, as the
-original paper argues. OFMUP+fix and OFMUP are within noise of each other at
+authors argue. OFMUP+fix and OFMUP are within noise of each other at
 $\rho=0$ (Table~\ref{tab:stale}): at this horizon the double counting has no
 measurable effect on regret, although it does make the confidence bonuses
 smaller than the data justify.
@@ -593,7 +593,7 @@ LCB: probes/round & 0.22 & 0.09 & 0.05 & \\
 LCB: point estimate / planner's $\rho$ & 0.77 / 0.63 & 0.83 / 0.68 & 0.85 / 0.65 & \\
 \bottomrule
 \end{tabular}
-\caption{Final regret in setting (a) at $\rho=0.8$ and the original paper's horizon $T=3000$ (3 seeds). The bottom rows give the probing rate of SA-OFMUP (LCB, final), its point estimate of $\rho$ and the lower bound used by its planner.}
+\caption{Final regret in setting (a) at $\rho=0.8$ and the original horizon $T=3000$ (3 seeds). The bottom rows give the probing rate of SA-OFMUP (LCB, final), its point estimate of $\rho$ and the lower bound used by its planner.}
 \label{tab:long}
 \end{table}
 
@@ -619,7 +619,7 @@ My reproduction suggests the following points in \citet{xu2026fair}, which I
 recommend checking against the full version \citep{xu2025fairarxiv}.
 \begin{enumerate}
 \item \textbf{Infeasible constraints.} The requirement $\sum_j\pi_{j,a}\le1$
-      cannot be met in any of the experimental settings of the original paper
+      cannot be met in any of the original experimental settings
       ($M>A$); its experiments presumably used a relaxed model that
       is not described.
 \item \textbf{Double counting.} At $\rho=0$ a pull from a just-probed arm
@@ -630,7 +630,7 @@ recommend checking against the full version \citep{xu2025fairarxiv}.
 \item \textbf{$\phi$ is irrelevant to the greedy choice.} Because $\phi$ is
       strictly increasing, the greedy chain is the chain of $g$; the
       construction matters only for the submodularity argument.
-\item \textbf{$\phi$ as a maximum of tangents.} The original paper defines
+\item \textbf{$\phi$ as a maximum of tangents.} \citet{xu2026fair} define
       $\phi(z)=\max_i T_{\tau_i}(z)$ and calls it concave; a maximum of affine
       functions is convex. The concave upper envelope required by the proof
       is the \emph{minimum} of the tangents.
@@ -652,7 +652,7 @@ recommend checking against the full version \citep{xu2025fairarxiv}.
 \end{enumerate}
 
 \section{Limitations and Future Work}
-My horizon and seed count are below those of the original paper: the sweeps
+My horizon and seed count are below those of \citet{xu2026fair}: the sweeps
 use $T=\TT$, and all results use three seeds, so the gains at $\rho=0.8$ are
 indications rather than a confirmed effect size; confirming them with more
 seeds is the first item of future work. The code supports the full setting. The
@@ -664,7 +664,7 @@ learning value of probes; adding an exploration bonus to the probe-selection
 score is a promising complement to SA-OFMUP. The regret analysis of SA-OFMUP is
 a proof direction, not a theorem: the estimation error of $\rhat$ and its effect
 on probe selection remain to be bounded. Finally, I did not run the NYC-taxi
-experiment of the original paper; the code supports it, but any staleness
+experiment of \citet{xu2026fair}; the code supports it, but any staleness
 experiment on historical data would be semi-synthetic, since the data cannot
 reveal what a driver would have found after a hypothetical delay.
 
@@ -673,7 +673,7 @@ I reproduced the fair probing framework of \citet{xu2026fair}, documented the
 decisions needed to run it, and identified several issues in its formulation.
 My extension, SA-OFMUP, removes the unrealistic assumption that a probe is
 still valid when an agent reaches the probed arm. It is exact for the
-product-of-expected-utilities objective of the original paper, learns the
+original product-of-expected-utilities objective, learns the
 staleness rate online with an estimator that is consistent under stated
 conditions (proof sketch), plans with a lower
 confidence bound to avoid locking in on early noise, reduces exactly to OFMUP
