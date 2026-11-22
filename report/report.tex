@@ -22,6 +22,7 @@
 \setlength{\pdfpageheight}{11in}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{xcolor}
@@ -167,25 +168,33 @@ baselines in NumPy. Running the method requires settling several points that
 the original paper does not specify; Table~\ref{tab:choices} lists them, and I
 discuss the three most consequential below.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
-\begin{tabular}{p{0.3\columnwidth}p{0.62\columnwidth}}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.40\textwidth}>{\raggedright\arraybackslash}p{0.54\textwidth}@{}}
 \toprule
-Open point & My choice \\
+\textbf{Open point} & \textbf{My choice} \\
 \midrule
 Assignment constraints: rows of $\pi$ sum to 1, columns $\le 1$; infeasible when $M>A$ (all four experimental settings) & Each agent has its own row; each arm receives at most $M/A$ agents in expectation. A ``shared'' policy $\pi\in\Delta^A$ \citep{jones2023efficient} is also implemented. \\
+\addlinespace[3pt]
 Overhead $\alpha$ not given & $\alpha(k)=(k/I)^3$ with $I=4$; satisfies $\alpha(0)=0$, $\alpha(I)=1$, non-decreasing. \\
+\addlinespace[3pt]
 Xu et al.'s Algorithm 1, lines 9 and 11 compare $f_{\mathrm{upper}}$ (log scale, $\le 0$) with $h(\emptyset)$ and $\mathcal{R}(S_j)$ (NSW scale, $\ge 0$) & Keep the greedy chain (lines 1--5); return the chain set with the largest Monte Carlo estimate of $\mathcal{R}(S_j)$, including $S_0=\emptyset$. \\
+\addlinespace[3pt]
 NSW aggregation & Geometric mean, as in the original experiments. \\
+\addlinespace[3pt]
 $\hat F_{j,a}\leftarrow 1$ ``optimistic'' initialisation & Point mass at reward 1. \\
+\addlinespace[3pt]
 Warm-start rounds (one agent acts) & Not counted in regret. \\
+\addlinespace[3pt]
 Discrete-reward distribution & Random (Dirichlet) weights on $\{0.3,\dots,0.8\}$. \\
+\addlinespace[3pt]
 Optimal assignment given $S$ & Multiplicative (EM-style) ascent on $\sum_j\log u_j$ with capacity rescaling, 60 iterations. \\
 \bottomrule
 \end{tabular}
-\caption{Modelling choices required to run the method of \citet{xu2026fair}, that are not specified in their paper.}
+\caption{Modelling choices required to run the method of \citet{xu2026fair} that are not specified in their paper.}
 \label{tab:choices}
-\end{table}
+\end{table*}
 
 \paragraph{Capacity.}
 \citet{xu2026fair} require $\sum_j\pi_{j,a,t}\le1$ for every arm, yet its
