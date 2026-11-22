@@ -38,16 +38,16 @@
 \maketitle
 
 \begin{abstract}
-We reproduce the Online Fair Multi-agent UCB with Probing (OFMUP) algorithm of
+I reproduce the Online Fair Multi-agent UCB with Probing (OFMUP) algorithm of
 \citet{xu2026fair}, which combines fair assignment by Nash social welfare (NSW)
-with a probing mechanism that inspects a few arms before each round, and we
-extend it. Our reproduction follows the methodology of the original paper and
+with a probing mechanism that inspects a few arms before each round, and I
+extend it. My reproduction follows the methodology of the original paper and
 makes explicit the modelling choices it leaves open, several of which (an
 infeasible capacity constraint when agents outnumber arms, an unspecified
 probing cost, and a scale mismatch in Xu et al.'s Algorithm~1) must be resolved before the
-method can be run at all. We then address a practical limitation of the model:
+method can be run at all. I then address a practical limitation of the model:
 it assumes that a probed reward is exactly the reward an agent obtains on
-arrival, although in ridesharing demand can change while a driver travels. We
+arrival, although in ridesharing demand can change while a driver travels. I
 propose Staleness-Aware OFMUP (SA-OFMUP), which models a probability $\rho$ that
 a probe is out of date, replaces the raw probe value by its conditional
 expectation in both probing and assignment, estimates $\rho$ online from
@@ -58,7 +58,7 @@ reduces exactly to OFMUP with the counting fix. Experiments on the synthetic
 settings of the original paper reproduce its ranking of methods; under
 staleness, SA-OFMUP learns $\rho$ accurately, matches OFMUP at $\rho=0.4$, and has
 lower regret than OFMUP on all three seeds at $\rho=0.8$ (about 10\% on average
-at $T=1500$ and 14\% at the original horizon $T=3000$; 3 seeds). We also report several
+at $T=1500$ and 14\% at the original horizon $T=3000$; 3 seeds). I also report several
 issues in the original paper, including a double counting of probe samples in
 Xu et al.'s Algorithm~2 and a simple counterexample to its Lemma~5.
 \end{abstract}
@@ -80,7 +80,7 @@ sublinear regret. Prior work on probing, such as Observe-Before-Play bandits \ci
 
 This project has two goals: to reproduce the methodology and results of
 \citet{xu2026fair} as faithfully as possible, and to extend the method in one
-substantive direction. Our contributions are as follows.
+substantive direction. My contributions are as follows.
 \begin{enumerate}
   \item A from-scratch implementation of OFMUP, its three baselines and the
         regret benchmark, with every open modelling choice documented
@@ -122,7 +122,7 @@ mean $\mu_{j,a}$ otherwise. The objective is the product of utilities,
 \end{equation}
 NSW is Pareto efficient and scale invariant, and lies between the utilitarian
 sum and max--min fairness \citep{caragiannis2019unreasonable}. Following the
-experiments of the original paper, we report the geometric mean $\NSW^{1/M}$,
+experiments of the original paper, I report the geometric mean $\NSW^{1/M}$,
 which has the same maximiser.
 
 \subsection{Probing cost and regret}
@@ -159,16 +159,16 @@ $O\big(\zeta(\sqrt{MAT}+MA)\ln^c(MAT/\delta)\big)$.
 \section{Reproduction Methodology}
 \label{sec:repro}
 
-We implemented the simulator, the NSW solver, both algorithms and the three
+I implemented the simulator, the NSW solver, both algorithms and the three
 baselines in NumPy. Running the method requires settling several points that
-the original paper does not specify; Table~\ref{tab:choices} lists them, and we
+the original paper does not specify; Table~\ref{tab:choices} lists them, and I
 discuss the three most consequential below.
 
 \begin{table}[t]
 \centering\small
 \begin{tabular}{p{0.3\columnwidth}p{0.62\columnwidth}}
 \toprule
-Open point in the original paper & Our choice \\
+Open point in the original paper & My choice \\
 \midrule
 Assignment constraints: rows of $\pi$ sum to 1, columns $\le 1$; infeasible when $M>A$ (all four experimental settings) & Each agent has its own row; each arm receives at most $M/A$ agents in expectation. A ``shared'' policy $\pi\in\Delta^A$ \citep{jones2023efficient} is also implemented. \\
 Overhead $\alpha$ not given & $\alpha(k)=(k/I)^3$ with $I=4$; satisfies $\alpha(0)=0$, $\alpha(I)=1$, non-decreasing. \\
@@ -187,7 +187,7 @@ Optimal assignment given $S$ & Multiplicative (EM-style) ascent on $\sum_j\log u
 \paragraph{Capacity.}
 The original paper requires $\sum_j\pi_{j,a,t}\le1$ for every arm, yet its
 experiments use $M=12,A=8$ and $M=20,A=10$, for which no feasible $\pi$ exists
-(the total mass $M$ exceeds $A$). We relax the capacity to $M/A$ agents per arm.
+(the total mass $M$ exceeds $A$). I relax the capacity to $M/A$ agents per arm.
 This preserves the intent of the constraint (no arm is over-used relative to
 its share) and reduces to the original constraint when $M=A$.
 
@@ -195,7 +195,7 @@ its share) and reduces to the original constraint when $M=A$.
 $f_{\mathrm{upper}}=\phi(g)$ approximates $\log g\le0$, whereas $h(\emptyset)$ and
 $\mathcal{R}(S_j)$ are NSW values in $[0,1]$; the comparisons in lines 9 and 11
 therefore cannot be executed as written. Since these lines serve to select a
-candidate with a good true value, we evaluate $\mathcal{R}(S_j)$ by Monte Carlo
+candidate with a good true value, I evaluate $\mathcal{R}(S_j)$ by Monte Carlo
 for all $I+1$ candidates and return the best, with
 $\mathcal{R}(\emptyset)=h(\emptyset)$ (no probing). The greedy chain itself is
 kept exactly as in the original paper. Moreover, $\phi$ is strictly increasing,
@@ -205,7 +205,7 @@ Theorem~1 but not the arms that the algorithm selects.
 \paragraph{Benchmark.}
 As in the original paper, the optimum is found by exhaustive search over all
 probing sets with $|S|\le I$; the expectation over probe outcomes is estimated
-from 300 Monte Carlo draws, with the assignment re-optimised for each draw. We
+from 300 Monte Carlo draws, with the assignment re-optimised for each draw. I
 verified the benchmark: an oracle that knows $\mu$ and uses the optimal probing
 set achieves zero average regret, whereas the same oracle without probing
 incurs positive regret in every round.
@@ -236,7 +236,7 @@ For a probed pair, the conditional expectation of the obtained reward is
   \E[Y_{j,a}\mid R_{j,a}]=(1-\rho)R_{j,a}+\rho\,\mu_{j,a}.
   \label{eq:condexp}
 \end{equation}
-We define the staleness-aware objective by substituting \eqref{eq:condexp} into
+I define the staleness-aware objective by substituting \eqref{eq:condexp} into
 \eqref{eq:nsw}:
 \begin{equation}
   \NSW_{\rho}=\prod_{j}\Big(\sum_{a\in S}\pi_{j,a}\big[(1-\rho)R_{j,a}+\rho\mu_{j,a}\big]+\sum_{a\notin S}\pi_{j,a}\mu_{j,a}\Big).
@@ -317,7 +317,7 @@ the experiments rather than tuned. Equation~\eqref{eq:lcb} is therefore a
 heuristic bound, not a proven $(1-\delta)$ confidence bound. Early on,
 $\rho_{\mathrm{LCB}}=0$ and SA-OFMUP behaves exactly as OFMUP with the counting
 fix (OFMUP+fix; Section~\ref{sec:count}); it discounts probes only once many
-pairs confirm staleness, by which time the point estimate is accurate. We denote
+pairs confirm staleness, by which time the point estimate is accurate. I denote
 this version SA-OFMUP (LCB, final) and use it as the proposed method; the version
 that plans with the point estimate, SA-OFMUP (point estimate), is retained as an
 ablation.
@@ -344,7 +344,7 @@ then assigned to that arm, line~16 records the pull as well. At $\rho=0$ the pul
 \emph{is} the probed draw, so the same sample is counted twice and the
 confidence bonus shrinks faster than the data warrant. SA-OFMUP records the
 probe only and uses the pair solely for \eqref{eq:rhohat}. To separate the
-effect of this fix from the staleness mechanism, we also evaluate OFMUP+fix,
+effect of this fix from the staleness mechanism, I also evaluate OFMUP+fix,
 which is OFMUP with only this change. Algorithm~\ref{alg:sa} lists the full
 procedure; lines marked $\star$ differ from the original algorithm.
 
@@ -377,7 +377,7 @@ procedure; lines marked $\star$ differ from the original algorithm.
 \label{sec:exp}
 
 \subsection{Setup}
-We follow the original paper: $M=12,A=8$ (small) and $M=20,A=10$ (medium);
+I follow the original paper: $M=12,A=8$ (small) and $M=20,A=10$ (medium);
 Bernoulli rewards with means in $[0.3,0.8]$ and discrete rewards on
 $\{0.3,\dots,0.8\}$; budget $I=4$; and $\delta=0.1$. Owing to compute limits,
 the sweeps use $T=\TT$ rounds and $\Seeds$ seeds, with a new problem instance per
@@ -427,11 +427,11 @@ $T=3000$ (Table~\ref{tab:repro3000} and Figure~\ref{fig:long}, left), the
 reductions in setting (a) are 76\% vs.\ Random P+A, 70\% vs.\ Greedy P+A and
 32\% vs.\ Non-Probing. Against Random P+A this is closer to the reported 85\%;
 against Greedy P+A, the reduction is 60\% at $T=\TT$ and 70\% at $T=3000$,
-against 60\% reported at $T=3000$. We suspect the remaining differences stem from the modelling
+against 60\% reported at $T=3000$. I suspect the remaining differences stem from the modelling
 choices in Table~\ref{tab:choices}, in particular the overhead function, which
 directly controls how often probing pays off. In setting (b) the reductions
-(62\% and 52\%) are further below the reported 88\% and 80\%; we did not rerun
-(b) at $T=3000$, so we cannot separate the horizon effect from the modelling
+(62\% and 52\%) are further below the reported 88\% and 80\%; I did not rerun
+(b) at $T=3000$, so I cannot separate the horizon effect from the modelling
 choices in Table~\ref{tab:choices}.
 
 \begin{table}[t]
@@ -500,11 +500,11 @@ $\rho=0.8$ SA-OFMUP (LCB, final) has lower regret than OFMUP on all three seeds
 (\RegLCBHi{} vs.\ \RegOFHi{} on average, about 10\%), and is also below
 Non-Probing (\RegNPHi) and SA-OFMUP (known $\rho$) (\RegSAKHi).
 
-We now examine the source of this gain. At $T=\TT$ the planner's lower bound is
+I now examine the source of this gain. At $T=\TT$ the planner's lower bound is
 still $0.65$--$0.69$, below the true value $0.8$, and SA-OFMUP (LCB, final)
 still probes $0.22$--$0.38$ arms per round, whereas SA-OFMUP (known $\rho$)
 probes none and merely matches Non-Probing. The advantage over SA-OFMUP (known
-$\rho$) therefore does not come from learning $\rho$ and stopping. Our
+$\rho$) therefore does not come from learning $\rho$ and stopping. My
 hypothesis is that the conservative bound keeps some probing going, and that
 these probes, although mostly stale, still speed up learning of the means; the
 bound thus acts as an exploration bonus that Xu et al.'s Algorithm~1 otherwise lacks. If
@@ -548,7 +548,7 @@ fairness that accompanies its reduced learning of the means.
 
 \subsection{Longer horizon}
 \label{sec:long}
-To test whether the advantage at $\rho=0.8$ persists over a longer horizon, we
+To test whether the advantage at $\rho=0.8$ persists over a longer horizon, I
 reran Non-Probing, OFMUP, SA-OFMUP (known $\rho$) and SA-OFMUP (LCB, final) at
 $\rho=0.8$ with $T=3000$, the original horizon, on the same three instances
 (Table~\ref{tab:long} and Figure~\ref{fig:long}). SA-OFMUP (LCB, final) again
@@ -612,7 +612,7 @@ consistent across all figures.}
 \section{Analysis of the OFMUP Formulation}
 \label{sec:findings}
 
-Our reproduction suggests the following points in \citet{xu2026fair}, which we
+My reproduction suggests the following points in \citet{xu2026fair}, which I
 recommend checking against the full version \citep{xu2025fairarxiv}.
 \begin{enumerate}
 \item \textbf{Infeasible constraints.} The requirement $\sum_j\pi_{j,a}\le1$
@@ -649,7 +649,7 @@ recommend checking against the full version \citep{xu2025fairarxiv}.
 \end{enumerate}
 
 \section{Limitations and Future Work}
-Our horizon and seed count are below those of the original paper: the sweeps
+My horizon and seed count are below those of the original paper: the sweeps
 use $T=\TT$, and all results use three seeds, so the gains at $\rho=0.8$ are
 indications rather than a confirmed effect size; confirming them with more
 seeds is the first item of future work. The code supports the full setting. The
@@ -660,21 +660,21 @@ extension and would likely show larger regret gains. Xu et al.'s Algorithm~1 ign
 learning value of probes; adding an exploration bonus to the probe-selection
 score is a promising complement to SA-OFMUP. The regret analysis of SA-OFMUP is
 a proof direction, not a theorem: the estimation error of $\rhat$ and its effect
-on probe selection remain to be bounded. Finally, we did not run the NYC-taxi
+on probe selection remain to be bounded. Finally, I did not run the NYC-taxi
 experiment of the original paper; the code supports it, but any staleness
 experiment on historical data would be semi-synthetic, since the data cannot
 reveal what a driver would have found after a hypothetical delay.
 
 \section{Conclusion}
-We reproduced the fair probing framework of \citet{xu2026fair}, documented the
+I reproduced the fair probing framework of \citet{xu2026fair}, documented the
 decisions needed to run it, and identified several issues in its formulation.
-Our extension, SA-OFMUP, removes the unrealistic assumption that a probe is
+My extension, SA-OFMUP, removes the unrealistic assumption that a probe is
 still valid when an agent reaches the probed arm. It is exact for the
 product-of-expected-utilities objective of the original paper, learns the
 staleness rate online with an estimator that is consistent under stated
 conditions (proof sketch), plans with a lower
 confidence bound to avoid locking in on early noise, reduces exactly to OFMUP
-(with the counting fix) when probes are reliable, and, in our experiments,
+(with the counting fix) when probes are reliable, and, in my experiments,
 reduces probing and regret when they are not.
 
 \bibliographystyle{aaai2026}
